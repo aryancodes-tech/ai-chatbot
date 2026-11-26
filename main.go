@@ -1,38 +1,21 @@
 package main
 
 import (
+	constants "01-basic-api-calling/contants"
+	"01-basic-api-calling/pkg/env"
 	"context"
-	"errors"
-	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/responses"
 )
 
-const (
-	xAIAPIKeyEnv = "XAI_API_KEY"
-	// xAIBaseURL is the OpenAI-compatible inference endpoint.
-	xAIBaseURL = "https://api.x.ai/v1"
-	grokModel  = "grok-4.3"
-)
-
-func loadAPIKey() (string, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		return "", err
-	}
-
-	apiKey := os.Getenv(xAIAPIKeyEnv)
-	if len(apiKey) == 0 {
-		return "", errors.New("XAI_API_KEY is not set")
-	}
-
-	return apiKey, nil
-}
-
 func main() {
-	apiKey, err := loadAPIKey()
+	if err := env.LoadEnv(); err != nil {
+		panic(err)
+	}
+
+	apiKey, err := env.LoadAPIKey()
 	if err != nil {
 		panic(err)
 	}
@@ -40,14 +23,14 @@ func main() {
 	ctx := context.Background()
 	client := openai.NewClient(
 		option.WithAPIKey(apiKey),
-		option.WithBaseURL(xAIBaseURL),
+		option.WithBaseURL(constants.XAIBaseURL),
 	)
 
 	question := "whats my name?"
 
 	resp, err := client.Responses.New(ctx, responses.ResponseNewParams{
 		Input: responses.ResponseNewParamsInputUnion{OfString: openai.String(question)},
-		Model: grokModel,
+		Model: constants.GrokModel,
 	})
 	if err != nil {
 		panic(err)
